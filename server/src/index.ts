@@ -1,18 +1,35 @@
+import 'reflect-metadata';
 import { MikroORM } from '@mikro-orm/core';
-import { Post } from '../entities/Post';
+// import { Post } from '../../entities/Post';
+import mikroConfig from './mikro-orm.config';
+import express from 'express';
+import { ApolloServer } from 'apollo-server-express';
+import { buildSchema } from 'type-graphql';
+import { HelloResolver } from './resolvers/hello';
+import { PostResolver } from './resolvers/post';
 
 const main = async () => {
-  const orm = await MikroORM.init({
-    entities: [Post],
-    dbName: 'redditclone',
-    user: 'postgres',
-    password: 'Al475500',
-    type: 'postgresql',
-    debug: process.env.NODE_ENV !== 'prodiction',
+  const orm = await MikroORM.init(mikroConfig); //Passing in db info
+  await orm.getMigrator().up(); // Automatically runs migrations
+
+  const app = express();
+
+  // Setting up graphQL
+  const apolloServer = new ApolloServer({
+    schema: await buildSchema({
+      resolvers: [HelloResolver, PostResolver], // "QURIES"
+      validate: false,
+    }),
+    context: () => ({ em: orm.em }),
   });
 
-  const post = orm.em.create(Post, { title: 'My First Post' });
-  await orm.em.persistAndFlush(post);
+  // This Creates a Graphql End Point
+  // http://localhost:4000/graphql to get to graphql playground
+  apolloServer.applyMiddleware({ app });
+
+  app.listen(4000, () => {
+    console.log('Server is running');
+  });
 };
 
 main();
