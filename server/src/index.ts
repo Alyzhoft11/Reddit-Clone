@@ -7,6 +7,7 @@ import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
 import { HelloResolver } from './resolvers/hello';
 import { PostResolver } from './resolvers/post';
+import { UserResolver } from './resolvers/user';
 
 const main = async () => {
   const orm = await MikroORM.init(mikroConfig); //Passing in db info
@@ -17,7 +18,7 @@ const main = async () => {
   // Setting up graphQL
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [HelloResolver, PostResolver], // "QURIES"
+      resolvers: [HelloResolver, PostResolver, UserResolver], // "QURIES"
       validate: false,
     }),
     context: () => ({ em: orm.em }),
